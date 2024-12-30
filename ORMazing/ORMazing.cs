@@ -1,15 +1,7 @@
-﻿using Microsoft.Data.SqlClient;
-using ORMazing.Config;
+﻿using ORMazing.Config;
 using ORMazing.DataAccess.Executors;
 using ORMazing.DataAccess.Factories;
-using ORMazing.DataAccess.Providers;
 using ORMazing.DataAccess.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ORMazing
 {
@@ -32,8 +24,6 @@ namespace ORMazing
             }
         }
 
-        //public string ConnectionString { get; private set }
-        //public DatabaseType DBType { get; private set; }
         public IDatabaseConnectionFactory ConnectionFactory { get; private set; }
 
         private ORMazing(string connectionString, DatabaseType dbType)
