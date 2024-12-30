@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ORMazing.DataAccess.Providers
+namespace ORMazing.DataAccess.QueryBuilders
 {
     public interface IQueryBuilder<T> where T : class, new()
     {

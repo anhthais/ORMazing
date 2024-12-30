@@ -1,7 +1,7 @@
 ﻿using ORMazing.Core.Attributes;
 using ORMazing.Core.Mappers;
 using ORMazing.DataAccess.Executors;
-using ORMazing.DataAccess.Providers;
+using ORMazing.DataAccess.QueryBuilders;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;

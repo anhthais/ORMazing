@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ORMazing.DataAccess.Providers
+namespace ORMazing.DataAccess.QueryBuilders
 {
     public class SqlQueryBuilder<T> : IQueryBuilder<T> where T : class, new()
     {
