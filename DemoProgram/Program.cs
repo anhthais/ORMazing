@@ -1,5 +1,6 @@
 ﻿using DemoProgram.Models;
 using ORMazing.Config;
+using ORMazing;
 
 namespace DemoProgram
 {
@@ -8,13 +9,13 @@ namespace DemoProgram
         static void Main(string[] args)
         {
             var connectionString = "Server=localhost,1433;Database=DemoDB;User Id=sa;Password=Password123;TrustServerCertificate=True;";
-            ORMazing.ORMazing.Configure(connectionString, DatabaseType.SQLServer);
-            if (!ORMazing.ORMazing.DB.TestConnection())
+            ORMazingProvider.Configure(connectionString, DatabaseType.SQLServer);
+            if (!ORMazingProvider.DB.TestConnection())
             {
                 Console.WriteLine("Failed to connect to the database.");
                 return;
             }
-            var DB = ORMazing.ORMazing.DB;
+            var DB = ORMazingProvider.DB;
             var userRepository = DB.GetRepository<User>();
             var users = userRepository.GetAll();
 

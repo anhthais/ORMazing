@@ -5,14 +5,14 @@ using ORMazing.DataAccess.Repositories;
 
 namespace ORMazing
 {
-    public class ORMazing
+    public class ORMazingProvider
     {
-        private static ORMazing _db;
+        private static ORMazingProvider _db;
         private string connectionString;
         private DatabaseType dbType;
 
 
-        public static ORMazing DB
+        public static ORMazingProvider DB
         {
             get
             {
@@ -26,7 +26,7 @@ namespace ORMazing
 
         public IDatabaseConnectionFactory ConnectionFactory { get; private set; }
 
-        private ORMazing(string connectionString, DatabaseType dbType)
+        private ORMazingProvider(string connectionString, DatabaseType dbType)
         {
             this.connectionString = connectionString;
             this.dbType = dbType;
@@ -40,7 +40,7 @@ namespace ORMazing
                 throw new InvalidOperationException("ORMazing is already configured.");
             }
 
-            _db = new ORMazing(connectionString, dbType);
+            _db = new ORMazingProvider(connectionString, dbType);
         }
 
         private void SetConnectionFactory()
