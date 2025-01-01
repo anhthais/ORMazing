@@ -19,10 +19,10 @@ ORMazing is a lightweight ORM framework designed to handle database operations i
 1. Run Docker Container for SQL Server
 
 ```
-cd .\DemoProgram\DB
+cd .\DemoProgram
 docker-compose up -d
 ```
 
-This will pull the latest SQL Server image from Docker Hub, create a container, and expose it on port 1433.
+This will pull the latest SQL Server image from Docker Hub, create a container, expose it on port 1433 and initialize `DemoDB`.
 
 2. Build and run the solution
