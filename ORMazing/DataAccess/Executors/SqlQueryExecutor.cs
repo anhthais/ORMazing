@@ -1,13 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using ORMazing.Core.Attributes;
 using ORMazing.DataAccess.Factories;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ORMazing.DataAccess.Executors
 {
@@ -67,6 +61,40 @@ namespace ORMazing.DataAccess.Executors
                                 }
                             }
                             results.Add(obj);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                _connection.Close();
+            }
+            return results;
+        }
+        public List<Dictionary<string, object>> ExecuteQueryToDictionary(string sql, Dictionary<string, object>? parameters)
+        {
+            var results = new List<Dictionary<string, object>>();
+            try
+            {
+                _connection.Open();
+                using (var command = new SqlCommand(sql, (SqlConnection)_connection))
+                {
+                    if (parameters != null)
+                    {
+                        AddParameters(command, parameters);
+                    }
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var row = new Dictionary<string, object>();
+                            for (int i = 0; i < reader.FieldCount; i++)
+                            {
+                                var columnName = reader.GetName(i);
+                                row[columnName] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+                            }
+                            results.Add(row);
                         }
                     }
                 }

@@ -5,6 +5,7 @@ using ORMazing.DataAccess.Repositories;
 
 namespace ORMazing
 {
+
     public class ORMazingProvider
     {
         private static ORMazingProvider _db;

@@ -8,7 +8,7 @@ namespace DemoProgram
     {
         static void Main(string[] args)
         {
-            var connectionString = "Data Source=MSI\\SQLEXPRESS11;Initial Catalog=DemoDB;Integrated Security=True;TrustServerCertificate=True";
+            var connectionString = "Server=localhost,1433;Database=DemoDB;User Id=sa;Password=Password123;TrustServerCertificate=True;";
             ORMazingProvider.Configure(connectionString, DatabaseType.SQLServer);
             if (!ORMazingProvider.DB.TestConnection())
             {
@@ -18,7 +18,7 @@ namespace DemoProgram
             var DB = ORMazingProvider.DB;
             var userRepository = DB.GetRepository<User>();
             var users = userRepository.GetAll();
-
+            //Add a user
             Console.WriteLine("Before adding a new user:");
             foreach (var user in users)
             {
@@ -39,10 +39,10 @@ namespace DemoProgram
             {
                 Console.WriteLine($"Id: {user.Id}, Name: {user.Name}, Age: {user.Age}");
             }
-
+            //Update a User (by Id)
             var updatedUser = new User
             {
-                Id = 12,
+                Id = 1,
                 Name = "Updated",
                 Age = 35
             };
@@ -53,11 +53,13 @@ namespace DemoProgram
             {
                 Console.WriteLine($"Id: {user.Id}, Name: {user.Name}, Age: {user.Age}");
             }
+
+            //Delete a User 
             var deletedUser = new User
             {
-                Id = 10,
-                Name = "John",
-                Age = 30
+                Id = 2,
+                Name = "Bob",
+                Age = 25
             };
             userRepository.Delete(deletedUser);
             users = userRepository.GetAll();
@@ -67,37 +69,63 @@ namespace DemoProgram
                 Console.WriteLine($"Id: {user.Id}, Name: {user.Name}, Age: {user.Age}");
             }
 
-            Console.WriteLine("\n=== Test GetWithCondition ===");
-            var usersWithCondition = userRepository.GetWithCondition("Age > 25");
-            Console.WriteLine("\nUsers with Age > 25:");
-            foreach (var user in usersWithCondition)
+            // Get with Id,Name
+            var selectedColumns = new List<string> { "Id", "Name" };
+            var usersWithCondition = userRepository.GetWithCondition(whereCondition: "Age > 25");
+            var usersWithSelectedColumns = userRepository.GetWithCondition(selectedColumns);
+            Console.WriteLine("\nUsers (Id and Name only):");
+            foreach (var user in usersWithSelectedColumns)
             {
-                Console.WriteLine($"Id: {user.Id}, Name: {user.Name}, Age: {user.Age}");
+                Console.WriteLine($"Id: {user["Id"]}, Name: {user["Name"]}");
             }
 
-            var usersGroupedByAge = userRepository.GetWithCondition(groupByColumns: "Age");
+            // Get with Id,Name with Where
+            var usersWithCondition1 = userRepository.GetWithCondition(selectedColumns = new List<string> { "Id", "Name" }, whereCondition: "Age > 25");
+            Console.WriteLine("\nUsers (Age > 25, Id and Name only):");
+            foreach (var user in usersWithCondition)
+            {
+                Console.WriteLine($"Id: {user["Id"]}, Name: {user["Name"]}");
+            }
+
+            //Get all with Where
+            Console.WriteLine("\nUsers with Age > 25:");
+            usersWithCondition = userRepository.GetWithCondition(whereCondition: "Age > 25");
+            foreach (var user in usersWithCondition)
+            {
+                Console.WriteLine($"Id:  {user["Id"]}, Name:  {user["Name"]}, Age:  {user["Age"]}");
+            }
+
+            //Get Age, Count(*) with Group By Age
+            var usersGroupedByAge = userRepository.GetWithCondition(
+                selectedColumns: new List<string> { "Age", "COUNT(*) AS UserCount" },
+                groupByColumns: new List<string> { "Age" }
+            );
             Console.WriteLine("\nUsers grouped by Age:");
             foreach (var user in usersGroupedByAge)
             {
-                Console.WriteLine($"Id: {user.Id}, Name: {user.Name}, Age: {user.Age}");
+                Console.WriteLine($"Age: {user["Age"]}, UserCount: {user["UserCount"]}");
             }
 
+            //Get * with GroupBy, Having
             var usersHavingCondition = userRepository.GetWithCondition(
-                groupByColumns: "Age",
+                selectedColumns: new List<string> { "Age", "COUNT(*) AS UserCount" },
+                groupByColumns: new List<string> { "Age" },
                 havingCondition: "COUNT(*) > 1"
             );
             Console.WriteLine("\nUsers having COUNT(*) > 1:");
             foreach (var user in usersHavingCondition)
             {
-                Console.WriteLine($"Id: {user.Id}, Name: {user.Name}, Age: {user.Age}");
+                Console.WriteLine($"Age: {user["Age"]}, UserCount: {user["UserCount"]}");
             }
 
+            //Get with Order
             var usersOrderedByName = userRepository.GetWithCondition(orderByColumns: "Name ASC");
             Console.WriteLine("\nUsers ordered by Name ASC:");
             foreach (var user in usersOrderedByName)
             {
-                Console.WriteLine($"Id: {user.Id}, Name: {user.Name}, Age: {user.Age}");
+                Console.WriteLine($"Id:  {user["Id"]}, Name:  {user["Name"]}, Age:  {user["Age"]}");
             }
+
 
         }
     }

@@ -48,24 +48,31 @@ namespace ORMazing.DataAccess.Repositories
             _queryExecutor.ExecuteNonQuery(sql, builder.GetParameters());
         }
 
-        public List<T> GetWithCondition(string whereCondition = null, string groupByColumns = null, string havingCondition = null, string orderByColumns = null)
+        public List<Dictionary<string, object>> GetWithCondition(
+                List<string>? selectedColumns = null,
+                string? whereCondition = null,
+                List<string>? groupByColumns = null,
+                string? havingCondition = null,
+                string? orderByColumns = null)
         {
-            var builder = new SqlQueryBuilder<T>().Select();
+            string columns = selectedColumns != null && selectedColumns.Count > 0
+                ? string.Join(", ", selectedColumns)
+                : "*";
+
+            var builder = new SqlQueryBuilder<T>().Select(columns);
 
             if (!string.IsNullOrEmpty(whereCondition))
             {
                 builder.Where(whereCondition);
             }
 
-            if (!string.IsNullOrEmpty(groupByColumns))
+            if (groupByColumns != null && groupByColumns.Count > 0)
             {
-                builder.GroupBy(groupByColumns);
-                builder.Select(groupByColumns);
-            }
-
-            if (!string.IsNullOrEmpty(havingCondition))
-            {
-                builder.Having(havingCondition);
+                builder.GroupBy(string.Join(", ", groupByColumns)); // Gộp danh sách cột nhóm thành chuỗi
+                if (!string.IsNullOrEmpty(havingCondition))
+                {
+                    builder.Having(havingCondition);
+                }
             }
 
             if (!string.IsNullOrEmpty(orderByColumns))
@@ -75,8 +82,10 @@ namespace ORMazing.DataAccess.Repositories
 
             var sql = builder.Build();
             Debug.WriteLine(sql);
-            return _queryExecutor.ExecuteQuery<T>(sql, builder.GetParameters());
+            return _queryExecutor.ExecuteQueryToDictionary(sql, builder.GetParameters());
         }
+
+
 
 
 
