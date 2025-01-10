@@ -1,9 +1,6 @@
 ﻿using ORMazing.Core.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Reflection;
+using System.Diagnostics;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ORMazing.DataAccess.QueryBuilders
 {
@@ -32,7 +29,23 @@ namespace ORMazing.DataAccess.QueryBuilders
             _query.Append($" WHERE {condition}");
             return this;
         }
+        public IQueryBuilder<T> GroupBy(string columns)
+        {
+            _query.Append($" GROUP BY {columns}");
+            return this;
+        }
 
+        public IQueryBuilder<T> Having(string condition)
+        {
+            _query.Append($" HAVING {condition}");
+            return this;
+        }
+
+        public IQueryBuilder<T> OrderBy(string columns)
+        {
+            _query.Append($" ORDER BY {columns}");
+            return this;
+        }
         public IQueryBuilder<T> Insert(Dictionary<string, object> values)
         {
             _query.Clear();
@@ -53,9 +66,82 @@ namespace ORMazing.DataAccess.QueryBuilders
             _query.Append(") VALUES (");
             _query.Append(string.Join(", ", parameterizedValues));
             _query.Append(")");
+            Debug.WriteLine(_query.ToString());
+            return this;
+        }
+
+
+        public IQueryBuilder<T> Update(Dictionary<string, object> values)
+        {
+            if (values == null || values.Count == 0)
+                throw new ArgumentException("Values dictionary cannot be null or empty.", nameof(values));
+
+            _query.Clear();
+            _query.Append($"UPDATE {_tableName} SET ");
+
+            var updates = new List<string>();
+            var conditions = new List<string>();
+
+            bool isFirst = true;
+            foreach (var kvp in values)
+            {
+                var parameterName = $"@{kvp.Key}";
+
+                if (isFirst)
+                {
+                    // Sử dụng giá trị đầu tiên làm điều kiện WHERE
+                    conditions.Add($"{kvp.Key} = {parameterName}");
+                    isFirst = false;
+                }
+                else
+                {
+                    // Các giá trị còn lại thuộc về phần SET
+                    updates.Add($"{kvp.Key} = {parameterName}");
+                }
+
+                _parameters[parameterName] = kvp.Value;
+            }
+
+            if (updates.Count == 0)
+                throw new ArgumentException("At least one value must be updated.", nameof(values));
+
+            _query.Append(string.Join(", ", updates));
+
+            // Thêm phần WHERE từ giá trị đầu tiên
+            if (conditions.Count > 0)
+            {
+                _query.Append(" WHERE ");
+                _query.Append(string.Join(" AND ", conditions));
+            }
 
             return this;
         }
+
+
+        public IQueryBuilder<T> Delete(Dictionary<string, object> conditions)
+        {
+            _query.Clear();
+            _query.Append($"DELETE FROM {_tableName}");
+
+            if (conditions != null && conditions.Count > 0)
+            {
+                _query.Append(" WHERE ");
+                var conditionList = new List<string>();
+
+                foreach (var kvp in conditions)
+                {
+                    var parameterName = $"@{kvp.Key}";
+                    conditionList.Add($"{kvp.Key} = {parameterName}");
+                    _parameters[parameterName] = kvp.Value;
+                }
+
+                _query.Append(string.Join(" AND ", conditionList));
+            }
+
+            return this;
+        }
+
+
 
         public string Build()
         {
