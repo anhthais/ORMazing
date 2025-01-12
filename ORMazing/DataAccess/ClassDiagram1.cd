@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="ORMazing.DataAccess.Executors.SqlQueryExecutor">
+    <Position X="3.25" Y="3.75" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAAAAAEQEAAAAAAAAAAAAAABAAABAA=</HashCode>
+      <FileName>DataAccess\Executors\SqlQueryExecutor.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.679" />
+  </Class>
+  <Class Name="ORMazing.DataAccess.Factories.SqlConnectionFactory">
+    <Position X="6.75" Y="3.75" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAIAAAAAAAAAAA=</HashCode>
+      <FileName>DataAccess\Factories\SqlConnectionFactory.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="ORMazing.DataAccess.QueryBuilders.SqlQueryBuilder&lt;T&gt;">
+    <Position X="10.5" Y="4.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AIQAAECAAAAEAAAgAAAAAAAFAAEAgAAAAAAAwAAAAIA=</HashCode>
+      <FileName>DataAccess\QueryBuilders\SqlQueryBuilder.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="ORMazing.DataAccess.Repositories.RepositoryBase&lt;T&gt;">
+    <Position X="14" Y="5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAYAAAAgAAAAAABAAAAAAAAAAAEAEAAAAgQAAAAAAAA=</HashCode>
+      <FileName>DataAccess\Repositories\RepositoryBase.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="ORMazing.ORMazingProvider">
+    <Position X="3.5" Y="7.25" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAACgAAAAAAAAAgAAABAAAAAIAAAAQAAAAAAFAAAABA=</HashCode>
+      <FileName>ORMazingProvider.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="ORMazing.DataAccess.Executors.IQueryExecutor">
+    <Position X="3.25" Y="1.25" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAAAAAAQEAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>DataAccess\Executors\IQueryExecutor.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="ORMazing.DataAccess.Factories.IDatabaseConnectionFactory">
+    <Position X="6.75" Y="1.25" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>DataAccess\Factories\IDatabaseConnectionFactory.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="ORMazing.DataAccess.QueryBuilders.IQueryBuilder&lt;T&gt;">
+    <Position X="10.5" Y="1.25" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AIQAAECAAAAAAAAAAAAAAAAEAAEAgAAAAAAAwAAAAAA=</HashCode>
+      <FileName>DataAccess\QueryBuilders\IQueryBuilder.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="ORMazing.DataAccess.Repositories.IRepository">
+    <Position X="14" Y="1.25" Width="2.5" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Interface Name="ORMazing.DataAccess.Repositories.IRepository.IRepository&lt;TEntity&gt;">
+        <TypeIdentifier>
+          <NewMemberFileName>DataAccess\Repositories\IRepository.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Interface>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>DataAccess\Repositories\IRepository.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
