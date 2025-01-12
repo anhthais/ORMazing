@@ -12,10 +12,12 @@ namespace ORMazing.DataAccess.Repositories
     public class RepositoryBase<T> : IRepository<T> where T : class, new()
     {
         private readonly IQueryExecutor _queryExecutor;
+        private readonly IQueryBuilder<T> _queryBuilder;
 
-        public RepositoryBase(IQueryExecutor queryExecutor)
+        public RepositoryBase(IQueryExecutor queryExecutor, IQueryBuilder<T> queryBuilder)
         {
             _queryExecutor = queryExecutor;
+            _queryBuilder = queryBuilder;
         }
 
         public void Add(T entity)
@@ -91,19 +93,20 @@ namespace ORMazing.DataAccess.Repositories
 
         public List<TResult> Get<TResult>(Expression<Func<T, TResult>> selector, string? whereCondition = null, Dictionary<string, object>? parameters = null) where TResult : class
         {
-            var builder = new SqlQueryBuilder<T>().Select(selector);
+            _queryBuilder.Reset();
+            _queryBuilder.Select(selector);
 
             if (!string.IsNullOrEmpty(whereCondition))
             {
-                builder.Where(whereCondition);
+                _queryBuilder.Where(whereCondition);
             }
 
-            var sql = builder.Build();
+            var sql = _queryBuilder.Build();
             var columnMappings = ExtractColumnMappings(selector);
 
             return _queryExecutor.ExecuteQueryWithExternalMapper<TResult>(
                 sql,
-                builder.GetParameters(),
+                _queryBuilder.GetParameters(),
                 reader =>
                 {
                     var constructor = typeof(TResult).GetConstructors().First();

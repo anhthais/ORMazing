@@ -7,11 +7,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ORMazing
 {
-        public class ORMazingProvider
+    public class ORMazingProvider
     {
         private static ORMazingProvider _db;
-        private string connectionString;
-        private DatabaseType dbType;
+        private string _connectionString;
+        private DatabaseType _dbType;
 
         public static ORMazingProvider DB
         {
@@ -25,12 +25,12 @@ namespace ORMazing
             }
         }
 
-        public IDatabaseConnectionFactory ConnectionFactory { get; private set; }
+        public IDatabaseFactory DatabaseFactory { get; private set; }
 
         private ORMazingProvider(string connectionString, DatabaseType dbType)
         {
-            this.connectionString = connectionString;
-            this.dbType = dbType;
+            _connectionString = connectionString;
+            _dbType = dbType;
             SetConnectionFactory();
         }
 
@@ -46,10 +46,10 @@ namespace ORMazing
 
         private void SetConnectionFactory()
         {
-            switch (dbType)
+            switch (_dbType)
             {
                 case DatabaseType.SQLServer:
-                    this.ConnectionFactory = new SqlConnectionFactory(connectionString);
+                    this.DatabaseFactory = new SqlDatabaseFactory(_connectionString);
                     break;
                 case DatabaseType.MySQL:
                     throw new NotImplementedException("MySQL not implemented yet");
@@ -60,14 +60,17 @@ namespace ORMazing
 
         public RepositoryBase<T> GetRepository<T>() where T : class, new()
         {
-            return new RepositoryBase<T>(new SqlQueryExecutor(ConnectionFactory));
+            var connection = DatabaseFactory.CreateConnection();
+            var queryExecutor = DatabaseFactory.CreateQueryExecutor(connection);
+            var queryBuilder = DatabaseFactory.CreateQueryBuilder<T>();
+            return new RepositoryBase<T>(queryExecutor, queryBuilder);
         }
 
         public bool TestConnection()
         {
             try
             {
-                using (var connection = ConnectionFactory.CreateConnection())
+                using (var connection = DatabaseFactory.CreateConnection())
                 {
                     connection.Open();
                     return connection.State == System.Data.ConnectionState.Open;
