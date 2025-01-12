@@ -88,7 +88,7 @@ namespace ORMazing.DataAccess.QueryBuilders
                 }
                 else if (argument.arg is MethodCallExpression methodCall)
                 {
-                    columnName = methodCall.ToString();
+                    columnName = ExpressionHelper.ParseAggregateMethodCall<T>(methodCall);
                 }
                 else
                 {

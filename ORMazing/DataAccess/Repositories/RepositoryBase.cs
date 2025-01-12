@@ -5,7 +5,6 @@ using ORMazing.Core.Models.Condition;
 using ORMazing.Core.Models.Expressions;
 using ORMazing.DataAccess.Executors;
 using ORMazing.DataAccess.QueryBuilders;
-using System.Diagnostics;
 using System.Linq.Expressions;
 using static ORMazing.DataAccess.Repositories.IRepository;
 
@@ -54,44 +53,6 @@ namespace ORMazing.DataAccess.Repositories
             var sql = builder.Build();
             _queryExecutor.ExecuteNonQuery(sql, builder.GetParameters());
         }
-
-        //public List<Dictionary<string, object>> GetWithCondition(
-        //        List<string>? selectedColumns = null,
-        //        string? whereCondition = null,
-        //        List<string>? groupByColumns = null,
-        //        string? havingCondition = null,
-        //        string? orderByColumns = null)
-        //{
-        //    string columns = selectedColumns != null && selectedColumns.Count > 0
-        //        ? string.Join(", ", selectedColumns)
-        //        : "*";
-
-        //    var builder = new SqlQueryBuilder<T>().Select(columns);
-
-        //    if (!string.IsNullOrEmpty(whereCondition))
-        //    {
-        //        //builder.Where(whereCondition);
-        //    }
-
-        //    if (groupByColumns != null && groupByColumns.Count > 0)
-        //    {
-        //        builder.GroupBy(string.Join(", ", groupByColumns));
-        //        if (!string.IsNullOrEmpty(havingCondition))
-        //        {
-        //            builder.Having(havingCondition);
-        //        }
-        //    }
-
-        //    if (!string.IsNullOrEmpty(orderByColumns))
-        //    {
-        //        builder.OrderBy(orderByColumns);
-        //    }
-
-        //    var sql = builder.Build();
-        //    Debug.WriteLine(sql);
-        //    return _queryExecutor.ExecuteQueryToDictionary(sql, builder.GetParameters());
-        //}
-
 
         public List<TResult> Get<TResult>(
             Expression<Func<T, TResult>> selector, 

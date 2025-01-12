@@ -112,5 +112,36 @@ namespace ORMazing.Core.Models.Expressions
                    type == typeof(double) ||
                    type == typeof(decimal);
         }
+
+        public static string ParseAggregateMethodCall<T>(MethodCallExpression methodCall) where T : class
+        {
+            var methodName = methodCall.Method.Name.ToUpperInvariant();
+            var supportedAggregates = new HashSet<string> { "COUNT", "SUM", "AVG", "MAX", "MIN" };
+
+            if (!supportedAggregates.Contains(methodName))
+            {
+                throw new ArgumentException($"Unsupported aggregate function: {methodName}");
+            }
+
+            if (methodCall.Arguments[0] is UnaryExpression unaryExpression && unaryExpression.Operand is LambdaExpression lambdaExpression)
+            {
+                // Truy xuất biểu thức cột
+                if (lambdaExpression.Body is MemberExpression memberExpression)
+                {
+                    var columnName = GetColumnNameFromEntity<T>(Expression.Lambda<Func<T, object>>(memberExpression, lambdaExpression.Parameters));
+                    return $"{methodName}({columnName})";
+                }
+
+                throw new ArgumentException("LambdaExpression must point to a property or field.");
+            }
+
+            if (methodCall.Arguments[0] is ConstantExpression constantExpression && constantExpression.Value is string column)
+            {
+                return $"{methodName}({column})";
+            }
+
+            throw new ArgumentException($"Invalid argument for aggregate function: {methodCall}");
+        }
+
     }
 }
