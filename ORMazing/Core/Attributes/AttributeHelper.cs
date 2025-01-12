@@ -31,9 +31,6 @@ namespace ORMazing.Core.Attributes
             if (property == null)
                 throw new ArgumentException($"Property {propertyName} not found in type {typeof(T).Name}");
 
-            //var columnAttribute = property.GetCustomAttributes(typeof(ColumnAttribute), true)
-            //                               .FirstOrDefault() as ColumnAttribute;
-            //return columnAttribute?.Name ?? property.Name;
             return GetColumnName(property);
         }
 

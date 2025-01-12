@@ -60,7 +60,7 @@ namespace ORMazing.DataAccess.QueryBuilders
         }
         public IQueryBuilder<T> Select<TResult>(Expression<Func<T, TResult>> selector)
         {
-            _query.Clear();
+            this.Reset();
 
             if (selector.Body is not NewExpression newExpression)
             {
@@ -121,13 +121,12 @@ namespace ORMazing.DataAccess.QueryBuilders
         }
         public IQueryBuilder<T> Insert(Dictionary<string, object> values)
         {
-            _query.Clear();
+            this.Reset();
             _query.Append($"INSERT INTO {_tableName} (");
 
             var columns = new List<string>();
             var parameterizedValues = new List<string>();
 
-            _parameters.Clear();
             foreach (var kvp in values)
             {
                 columns.Add(kvp.Key);
@@ -149,14 +148,12 @@ namespace ORMazing.DataAccess.QueryBuilders
             if (values == null || values.Count == 0)
                 throw new ArgumentException("Values dictionary cannot be null or empty.", nameof(values));
 
-            _query.Clear();
+            this.Reset();
             _query.Append($"UPDATE {_tableName} SET ");
 
             var updates = new List<string>();
             var conditions = new List<string>();
-
             bool isFirst = true;
-            _parameters.Clear();
 
             foreach (var kvp in values)
             {
@@ -193,7 +190,7 @@ namespace ORMazing.DataAccess.QueryBuilders
 
         public IQueryBuilder<T> Delete(Dictionary<string, object> conditions)
         {
-            _query.Clear();
+            this.Reset();
             _query.Append($"DELETE FROM {_tableName}");
 
             if (conditions != null && conditions.Count > 0)
