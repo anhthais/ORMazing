@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,9 +20,21 @@ namespace ORMazing.Core.Attributes
         public static string GetColumnName(PropertyInfo property)
         {
             var columnAttribute = property.GetCustomAttribute<ColumnAttribute>();
-            if (columnAttribute == null)
-                throw new Exception($"Column attribute is missing on property {property.Name}");
-            return columnAttribute.Name;
+            return columnAttribute == null
+                ? throw new Exception($"Column attribute is missing on property {property.Name}")
+                : columnAttribute.Name;
+        }
+
+        public static string GetColumnName<T>(string propertyName) where T : class
+        {
+            var property = typeof(T).GetProperty(propertyName);
+            if (property == null)
+                throw new ArgumentException($"Property {propertyName} not found in type {typeof(T).Name}");
+
+            //var columnAttribute = property.GetCustomAttributes(typeof(ColumnAttribute), true)
+            //                               .FirstOrDefault() as ColumnAttribute;
+            //return columnAttribute?.Name ?? property.Name;
+            return GetColumnName(property);
         }
 
         public static PropertyInfo[] GetProperties<T>() where T : class, new()
@@ -39,5 +52,6 @@ namespace ORMazing.Core.Attributes
 
             return result.ToArray();
         }
+
     }
 }

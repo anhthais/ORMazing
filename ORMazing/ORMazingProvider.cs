@@ -1,17 +1,17 @@
 ﻿using ORMazing.Config;
 using ORMazing.DataAccess.Executors;
 using ORMazing.DataAccess.Factories;
+using ORMazing.DataAccess.QueryBuilders;
 using ORMazing.DataAccess.Repositories;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ORMazing
 {
-
-    public class ORMazingProvider
+        public class ORMazingProvider
     {
         private static ORMazingProvider _db;
         private string connectionString;
         private DatabaseType dbType;
-
 
         public static ORMazingProvider DB
         {
@@ -79,6 +79,5 @@ namespace ORMazing
                 return false;
             }
         }
-
     }
 }

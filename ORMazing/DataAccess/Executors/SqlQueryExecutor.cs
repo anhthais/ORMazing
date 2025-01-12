@@ -2,6 +2,7 @@
 using ORMazing.Core.Attributes;
 using ORMazing.DataAccess.Factories;
 using System.Data;
+using System.Dynamic;
 
 namespace ORMazing.DataAccess.Executors
 {
@@ -19,13 +20,8 @@ namespace ORMazing.DataAccess.Executors
             try
             {
                 _connection.Open();
-                using (var command = new SqlCommand(sql, (SqlConnection)_connection))
+                using (var command = CreateCommand(sql, parameters))
                 {
-                    if (parameters != null)
-                    {
-                        AddParameters(command, parameters);
-                    }
-
                     return command.ExecuteNonQuery();
                 }
             }
@@ -41,14 +37,10 @@ namespace ORMazing.DataAccess.Executors
             try
             {
                 _connection.Open();
-                using (var command = new SqlCommand(sql, (SqlConnection)_connection))
+                using (var command = CreateCommand(sql, parameters))
                 {
                     using (var reader = command.ExecuteReader())
                     {
-                        if (parameters != null)
-                        {
-                            AddParameters(command, parameters);
-                        }
                         while (reader.Read())
                         {
                             var obj = new T();
@@ -71,19 +63,42 @@ namespace ORMazing.DataAccess.Executors
             }
             return results;
         }
+
+        public List<TResult> ExecuteQueryWithExternalMapper<TResult>(string sql, Dictionary<string, object>? parameters, Func<IDataReader, TResult> map)
+        {
+            var results = new List<TResult>();
+
+            try
+            {
+                _connection.Open();
+                using (var command = CreateCommand(sql, parameters))
+                {
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var result = map(reader);
+                            results.Add(result);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                _connection.Close();
+            }
+
+            return results;
+        }
+
         public List<Dictionary<string, object>> ExecuteQueryToDictionary(string sql, Dictionary<string, object>? parameters)
         {
             var results = new List<Dictionary<string, object>>();
             try
             {
                 _connection.Open();
-                using (var command = new SqlCommand(sql, (SqlConnection)_connection))
+                using (var command = CreateCommand(sql, parameters))
                 {
-                    if (parameters != null)
-                    {
-                        AddParameters(command, parameters);
-                    }
-
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())
@@ -114,5 +129,14 @@ namespace ORMazing.DataAccess.Executors
             }
         }
 
+        private SqlCommand CreateCommand(string sql, Dictionary<string, object>? parameters)
+        {
+            var command = new SqlCommand(sql, (SqlConnection)_connection);
+            if (parameters != null)
+            {
+                AddParameters(command, parameters);
+            }
+            return command;
+        }
     }
 }

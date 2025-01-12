@@ -1,5 +1,8 @@
 ﻿using ORMazing.Core.Attributes;
+using ORMazing.Core.Models.Expressions;
 using System.Diagnostics;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 
 namespace ORMazing.DataAccess.QueryBuilders
@@ -17,13 +20,81 @@ namespace ORMazing.DataAccess.QueryBuilders
             _parameters = new Dictionary<string, object>();
         }
 
-        public IQueryBuilder<T> Select(string columns = "*")
+        public IQueryBuilder<T> Select(params string[] columns)
         {
             _query.Clear();
-            _query.Append($"SELECT {columns} FROM {_tableName}");
+
+            if (columns.Length == 0)
+            {
+                _query.Append($"SELECT * FROM {_tableName}");
+            }
+            else
+            {
+                _query.Append($"SELECT {string.Join(", ", columns)} FROM {_tableName}");
+            }
+
             return this;
         }
+        public IQueryBuilder<T> Select(params Expression<Func<T, object>>[] selectors)
+        {
+            _query.Clear();
 
+            var columnNames = new List<string>();
+
+            if (selectors.Length == 0)
+            {
+                columnNames.Add("*");
+            } 
+            else
+            {
+                foreach(var selector in selectors)
+                {
+                    var propertyName = GetColumnNameFromExpression(selector);
+                    var columnName = AttributeHelper.GetColumnName<T>(propertyName);
+                    columnNames.Add(columnName);
+                }
+            }
+
+            _query.Append($"SELECT {string.Join(", ", columnNames)} FROM {_tableName}");
+            return this;
+        }
+        public IQueryBuilder<T> Select<TResult>(Expression<Func<T, TResult>> selector)
+        {
+            _query.Clear();
+
+            if (selector.Body is not NewExpression newExpression)
+            {
+                throw new ArgumentException("Selector must be a valid expression creating a new object.");
+            }
+
+            var columnMappings = new List<string>();
+
+            foreach (var argument in newExpression.Arguments.Zip(newExpression.Members, (arg, member) => new { arg, member }))
+            {
+                string columnName;
+
+                if (argument.arg is MemberExpression memberExpression)
+                {
+                    var propertyName = memberExpression.Member.Name;
+                    columnName = AttributeHelper.GetColumnName<T>(propertyName);
+                }
+                else if (argument.arg is MethodCallExpression methodCall)
+                {
+                    columnName = methodCall.ToString();
+                }
+                else
+                {
+                    throw new ArgumentException($"Unsupported selector argument type: {argument.arg.GetType()}");
+                }
+
+                columnMappings.Add($"{columnName} AS {argument.member.Name}");
+            }
+
+            // Tạo câu lệnh SELECT
+            _query.Append($"SELECT {string.Join(", ", columnMappings)} FROM {_tableName}");
+
+            return this;
+        }
         public IQueryBuilder<T> Where(string condition)
         {
             _query.Append($" WHERE {condition}");
@@ -34,7 +105,6 @@ namespace ORMazing.DataAccess.QueryBuilders
             _query.Append($" GROUP BY {columns}");
             return this;
         }
-
         public IQueryBuilder<T> Having(string condition)
         {
             _query.Append($" HAVING {condition}");
@@ -54,6 +124,7 @@ namespace ORMazing.DataAccess.QueryBuilders
             var columns = new List<string>();
             var parameterizedValues = new List<string>();
 
+            _parameters.Clear();
             foreach (var kvp in values)
             {
                 columns.Add(kvp.Key);
@@ -70,7 +141,6 @@ namespace ORMazing.DataAccess.QueryBuilders
             return this;
         }
 
-
         public IQueryBuilder<T> Update(Dictionary<string, object> values)
         {
             if (values == null || values.Count == 0)
@@ -83,6 +153,8 @@ namespace ORMazing.DataAccess.QueryBuilders
             var conditions = new List<string>();
 
             bool isFirst = true;
+            _parameters.Clear();
+
             foreach (var kvp in values)
             {
                 var parameterName = $"@{kvp.Key}";
@@ -107,7 +179,6 @@ namespace ORMazing.DataAccess.QueryBuilders
 
             _query.Append(string.Join(", ", updates));
 
-            // Thêm phần WHERE từ giá trị đầu tiên
             if (conditions.Count > 0)
             {
                 _query.Append(" WHERE ");
@@ -116,7 +187,6 @@ namespace ORMazing.DataAccess.QueryBuilders
 
             return this;
         }
-
 
         public IQueryBuilder<T> Delete(Dictionary<string, object> conditions)
         {
@@ -141,8 +211,6 @@ namespace ORMazing.DataAccess.QueryBuilders
             return this;
         }
 
-
-
         public string Build()
         {
             return _query.ToString();
@@ -151,6 +219,19 @@ namespace ORMazing.DataAccess.QueryBuilders
         public Dictionary<string, object> GetParameters()
         {
             return new Dictionary<string, object>(_parameters);
+        }
+
+        private string GetColumnNameFromExpression(Expression<Func<T, object>> expression)
+        {
+            if (expression.Body is MemberExpression member)
+            {
+                return member.Member.Name;
+            }
+            if (expression.Body is UnaryExpression unary && unary.Operand is MemberExpression memberOperand)
+            {
+                return memberOperand.Member.Name;
+            }
+            throw new InvalidOperationException("Invalid column expression.");
         }
     }
 }
