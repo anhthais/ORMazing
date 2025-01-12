@@ -25,7 +25,7 @@ namespace ORMazing.Core.Models.Condition
         {
             var columnName = ExpressionHelper.GetColumnNameFromEntity<T>(_column);
             var formattedValue = ExpressionHelper.FormatValue(_value);
-            return $"{columnName} {_operator} {formattedValue}";
+            return $"({columnName} {_operator} {formattedValue})";
         }
     }
 

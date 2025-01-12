@@ -12,7 +12,7 @@ namespace ORMazing.DataAccess.Factories
     public interface IDatabaseFactory
     {
         IDbConnection CreateConnection();
-        IQueryExecutor CreateQueryExecutor(IDbConnection connection);
+        IQueryExecutor CreateQueryExecutor(IDbConnection connection, bool logging = false);
         IQueryBuilder<T> CreateQueryBuilder<T>() where T : class, new();
     }
 }

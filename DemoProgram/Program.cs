@@ -15,7 +15,7 @@ namespace DemoProgram
         static void Main(string[] args)
         {
             var connectionString = "Server=localhost,1433;Database=DemoDB;User Id=sa;Password=Password123;TrustServerCertificate=True;";
-            ORMazingProvider.Configure(connectionString, DatabaseType.SQLServer);
+            ORMazingProvider.Configure(connectionString, DatabaseType.SQLServer, new ORMazingConfig { LoggingConsole = true });
             if (!ORMazingProvider.DB.TestConnection())
             {
                 Console.WriteLine("Failed to connect to the database.");

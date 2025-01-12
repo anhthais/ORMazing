@@ -12,6 +12,7 @@ namespace ORMazing
         private static ORMazingProvider _db;
         private string _connectionString;
         private DatabaseType _dbType;
+        private ORMazingConfig _config;
 
         public static ORMazingProvider DB
         {
@@ -27,21 +28,22 @@ namespace ORMazing
 
         public IDatabaseFactory DatabaseFactory { get; private set; }
 
-        private ORMazingProvider(string connectionString, DatabaseType dbType)
+        private ORMazingProvider(string connectionString, DatabaseType dbType, ORMazingConfig config)
         {
             _connectionString = connectionString;
             _dbType = dbType;
+            _config = config;
             SetConnectionFactory();
         }
 
-        public static void Configure(string connectionString, DatabaseType dbType)
+        public static void Configure(string connectionString, DatabaseType dbType, ORMazingConfig? config = null)
         {
             if (_db != null)
             {
                 throw new InvalidOperationException("ORMazing is already configured.");
             }
 
-            _db = new ORMazingProvider(connectionString, dbType);
+            _db = new ORMazingProvider(connectionString, dbType, config);
         }
 
         private void SetConnectionFactory()
@@ -61,7 +63,7 @@ namespace ORMazing
         public RepositoryBase<T> GetRepository<T>() where T : class, new()
         {
             var connection = DatabaseFactory.CreateConnection();
-            var queryExecutor = DatabaseFactory.CreateQueryExecutor(connection);
+            var queryExecutor = DatabaseFactory.CreateQueryExecutor(connection, _config.LoggingConsole);
             var queryBuilder = DatabaseFactory.CreateQueryBuilder<T>();
             return new RepositoryBase<T>(queryExecutor, queryBuilder);
         }

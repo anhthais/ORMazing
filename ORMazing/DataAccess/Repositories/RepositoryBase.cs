@@ -136,7 +136,6 @@ namespace ORMazing.DataAccess.Repositories
             }
 
             var sql = _queryBuilder.Build();
-            Console.WriteLine(DateTime.Now + ": " + sql);
             var columnMappings = ExtractColumnMappings(selector);
 
             return _queryExecutor.ExecuteQueryWithExternalMapper<TResult>(

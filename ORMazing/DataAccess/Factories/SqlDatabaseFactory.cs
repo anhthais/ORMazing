@@ -24,9 +24,18 @@ namespace ORMazing.DataAccess.Factories
             return new SqlConnection(_connectionString);
         }
 
-        public IQueryExecutor CreateQueryExecutor(IDbConnection connection)
+        public IQueryExecutor CreateQueryExecutor(IDbConnection connection, bool logging = false)
         {
-            return new SqlQueryExecutor(connection);
+            var sqlQueryExecutor = new SqlQueryExecutor(connection);
+
+            if (logging)
+            {
+                return new LoggingSqlQueryExecutor(sqlQueryExecutor);
+            } 
+            else
+            {
+                return sqlQueryExecutor;
+            }
         }
 
         public IQueryBuilder<T> CreateQueryBuilder<T>() where T : class, new()

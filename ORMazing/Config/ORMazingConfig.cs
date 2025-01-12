@@ -8,6 +8,6 @@ namespace ORMazing.Config
 {
     public class ORMazingConfig
     {
-
+        public bool LoggingConsole { get; set; }
     }
 }
