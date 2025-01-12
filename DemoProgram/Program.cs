@@ -136,8 +136,8 @@ namespace DemoProgram
 
             var res = userRepository.Get(o => new
             {
-                CustomerId = o.Id,
-                CustomerName = o.Name,
+                CustomerId = o.Id * 5,
+                CustomerName = o.Name + " hello",
                 CustomerName2 = o.Name
             });
 

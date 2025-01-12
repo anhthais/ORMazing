@@ -1,5 +1,6 @@
 ﻿using ORMazing.Core.Attributes;
 using ORMazing.Core.Mappers;
+using ORMazing.Core.Models.Expressions;
 using ORMazing.DataAccess.Executors;
 using ORMazing.DataAccess.QueryBuilders;
 using System.Diagnostics;
@@ -132,6 +133,11 @@ namespace ORMazing.DataAccess.Repositories
                     else if (argument.arg is MethodCallExpression methodCall)
                     {
                         var sourceColumn = methodCall.ToString();
+                        mappings.Add((sourceColumn, argument.member.Name));
+                    }
+                    else if (argument.arg is BinaryExpression binaryExpr)
+                    {
+                        var sourceColumn = ExpressionHelper.HandleBinaryExpression<T>(binaryExpr);
                         mappings.Add((sourceColumn, argument.member.Name));
                     }
                     else

@@ -10,96 +10,94 @@ namespace ORMazing.Core.Models.Expressions
 {
     public static class ExpressionHelper
     {
-        //public static string ConvertExpressionToSql(Expression expression)
-        //{
-        //    if (expression is BinaryExpression binaryExpr)
-        //    {
-        //        var left = ConvertExpressionToSql(binaryExpr.Left);
-        //        var right = ConvertExpressionToSql(binaryExpr.Right);
-        //        var @operator = GetSqlOperator(binaryExpr.NodeType);
+        public static string HandleBinaryExpression<T>(BinaryExpression binaryExpression) where T: class
+        {
+            var leftType = GetExpressionType(binaryExpression.Left);
+            var rightType = GetExpressionType(binaryExpression.Right);
+            var @operator = GetSqlOperator(binaryExpression.NodeType);
+            if (!IsValidOperatorForTypes(@operator, leftType, rightType))
+            {
+                throw new ArgumentException($"Operator '{@operator}' is not valid for types {leftType} and {rightType}");
+            }
 
-        //        return $"{left} {@operator} {right}";
-        //    }
-        //    else if (expression is MemberExpression memberExpr)
-        //    {
-        //        return AttributeHelper.GetColumnName(memberExpr.Member);
-        //    }
-        //    else if (expression is ConstantExpression constantExpr)
-        //    {
-        //        return FormatSqlValue(constantExpr.Value);
-        //    }
-        //    else if (expression is MethodCallExpression methodCall)
-        //    {
-        //        return ConvertMethodCallToSql(methodCall);
-        //    }
+            var left = GetExpressionValue<T>(binaryExpression.Left);
+            var right = GetExpressionValue<T>(binaryExpression.Right);
 
-        //    throw new ArgumentException($"Unsupported expression type: {expression.GetType()}");
-        //}
+            return $"{left} {@operator} {right}";
+        }
 
-        //public static string ExtractColumnList(Expression expression)
-        //{
-        //    if (expression is NewExpression newExpr)
-        //    {
-        //        var columns = newExpr.Arguments
-        //            .Select(arg =>
-        //            {
-        //                if (arg is MemberExpression memberExpr)
-        //                {
-        //                    return AttributeHelper.GetColumnName(memberExpr.Member);
-        //                }
+        public static string GetExpressionValue<T>(Expression expression) where T : class
+        {
+            if (expression is MemberExpression memberExpression)
+            {
+                var propertyName = memberExpression.Member.Name;
+                return AttributeHelper.GetColumnName<T>(propertyName);
+            }
+            else if (expression is ConstantExpression constantExpression)
+            {
+                return FormatValue(constantExpression.Value);
+            }
+            else if (expression is BinaryExpression binaryExpression)
+            {
+                return HandleBinaryExpression<T>(binaryExpression);
+            }
+            throw new ArgumentException($"Unsupported expression type: {expression.GetType()}");
+        }
 
-        //                throw new ArgumentException($"Unsupported expression in GroupBy: {arg.GetType()}");
-        //            });
+        public static string GetSqlOperator(ExpressionType expressionType)
+        {
+            return expressionType switch
+            {
+                ExpressionType.Add => "+",
+                ExpressionType.Subtract => "-",
+                ExpressionType.Multiply => "*",
+                ExpressionType.Divide => "/",
+                _ => throw new ArgumentException($"Unsupported binary operator: {expressionType}")
+            };
+        }
 
-        //        return string.Join(", ", columns);
-        //    }
-        //    else if (expression is MemberExpression singleColumnExpr)
-        //    {
-        //        return AttributeHelper.GetColumnName(singleColumnExpr.Member);
-        //    }
+        public static string FormatValue(object? value)
+        {
+            return value switch
+            {
+                string s => $"'{s.Replace("'", "''")}'",
+                DateTime dt => $"'{dt:yyyy-MM-dd HH:mm:ss}'",
+                bool b => b ? "1" : "0",
+                _ => value?.ToString() ?? "NULL"
+            };
+        }
 
-        //    throw new ArgumentException("Invalid GroupBy expression.");
-        //}
+        public static Type GetExpressionType(Expression expression)
+        {
+            return expression switch
+            {
+                MemberExpression memberExpression => memberExpression.Type,
+                ConstantExpression constantExpression => constantExpression.Type,
+                BinaryExpression binaryExpression => typeof(object),
+                UnaryExpression unaryExpression => unaryExpression.Type,
+                _ => throw new ArgumentException($"Unsupported expression type: {expression.GetType()}")
+            };
+        }
 
-        //private static string GetSqlOperator(ExpressionType nodeType)
-        //{
-        //    return nodeType switch
-        //    {
-        //        ExpressionType.Equal => "=",
-        //        ExpressionType.NotEqual => "<>",
-        //        ExpressionType.GreaterThan => ">",
-        //        ExpressionType.GreaterThanOrEqual => ">=",
-        //        ExpressionType.LessThan => "<",
-        //        ExpressionType.LessThanOrEqual => "<=",
-        //        ExpressionType.AndAlso => "AND",
-        //        ExpressionType.OrElse => "OR",
-        //        _ => throw new ArgumentException($"Unsupported binary operator: {nodeType}")
-        //    };
-        //}
+        public static bool IsValidOperatorForTypes(string @operator, Type leftType, Type rightType)
+        {
+            bool isLeftNumeric = IsNumericType(leftType);
+            bool isRightNumeric = IsNumericType(rightType);
+            return @operator switch
+            {
+                "+" => isLeftNumeric || leftType == typeof(string),
+                "-" or "*" or "/" => isLeftNumeric && isRightNumeric,
+                _ => false
+            };
+        }
 
-        //private static string FormatSqlValue(object? value)
-        //{
-        //    return value switch
-        //    {
-        //        null => "NULL",
-        //        string str => $"'{str.Replace("'", "''")}'",
-        //        DateTime dt => $"'{dt:yyyy-MM-dd HH:mm:ss}'",
-        //        _ => value.ToString() ?? "NULL"
-        //    };
-        //}
-
-        //private static string ConvertMethodCallToSql(MethodCallExpression methodCall)
-        //{
-        //    if (methodCall.Method.DeclaringType == typeof(SqlFunctions))
-        //    {
-        //        var methodName = methodCall.Method.Name.ToUpper();
-        //        var arguments = methodCall.Arguments.Select(ConvertExpressionToSql);
-
-        //        return $"{methodName}({string.Join(", ", arguments)})";
-        //    }
-
-        //    throw new ArgumentException($"Unsupported method call: {methodCall.Method.Name}");
-        //}
-    
+        public static bool IsNumericType(Type type)
+        {
+            return type == typeof(int) ||
+                   type == typeof(long) ||
+                   type == typeof(float) ||
+                   type == typeof(double) ||
+                   type == typeof(decimal);
+        }
     }
 }

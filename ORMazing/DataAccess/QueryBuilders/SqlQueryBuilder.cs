@@ -78,6 +78,10 @@ namespace ORMazing.DataAccess.QueryBuilders
                     var propertyName = memberExpression.Member.Name;
                     columnName = AttributeHelper.GetColumnName<T>(propertyName);
                 }
+                else if (argument.arg is BinaryExpression binaryExpression)
+                {
+                    columnName = ExpressionHelper.HandleBinaryExpression<T>(binaryExpression);
+                }
                 else if (argument.arg is MethodCallExpression methodCall)
                 {
                     columnName = methodCall.ToString();
@@ -90,7 +94,6 @@ namespace ORMazing.DataAccess.QueryBuilders
                 columnMappings.Add($"{columnName} AS {argument.member.Name}");
             }
 
-            // Tạo câu lệnh SELECT
             _query.Append($"SELECT {string.Join(", ", columnMappings)} FROM {_tableName}");
 
             return this;
