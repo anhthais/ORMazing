@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using ORMazing.Core.Common;
 
 namespace ORMazing.DataAccess.QueryBuilders
 {
@@ -123,21 +124,72 @@ namespace ORMazing.DataAccess.QueryBuilders
             return this;
         }
 
-        public IQueryBuilder<T> GroupBy(string columns)
+        public IQueryBuilder<T> GroupBy(params string[] columns)
         {
-            _query.Append($" GROUP BY {columns}");
-            return this;
-        }
-        
-        public IQueryBuilder<T> Having(string condition)
-        {
-            _query.Append($" HAVING {condition}");
+            if (columns.Length == 0)
+            {
+                throw new ArgumentException("At least one column must be provided for GROUP BY clause.", nameof(columns));
+            }
+
+            _query.Append($" GROUP BY {string.Join(", ", columns)}");
             return this;
         }
 
-        public IQueryBuilder<T> OrderBy(string columns)
+        public IQueryBuilder<T> GroupBy(params Expression<Func<T, object>>[] selectors)
         {
-            _query.Append($" ORDER BY {columns}");
+            if (selectors.Length == 0)
+            {
+                throw new ArgumentException("At least one selector must be provided for GROUP BY clause.", nameof(selectors));
+            }
+
+            var columnNames = new List<string>();
+
+            foreach (var selector in selectors)
+            {
+                var propertyName = ExpressionHelper.GetColumnNameFromEntity<T>(selector);
+                var columnName = AttributeHelper.GetColumnName<T>(propertyName);
+                columnNames.Add(columnName);
+            }
+
+            _query.Append($" GROUP BY {string.Join(", ", columnNames)}");
+            return this;
+        }
+
+        public IQueryBuilder<T> Having(Condition<T> condition)
+        {
+            _query.Append($" HAVING {condition.ToSql()}");
+            return this;
+        }
+
+        public IQueryBuilder<T> OrderBy(params (string Column, OrderType Order)[] columns)
+        {
+            if (columns.Length > 0)
+            {
+                var orderByClauses = columns.Select(c => $"{c.Column} {(c.Order == OrderType.Ascending ? "ASC" : "DESC")}");
+                _query.Append($" ORDER BY {string.Join(", ", orderByClauses)}");
+            }
+
+            return this;
+        }
+
+        public IQueryBuilder<T> OrderBy(params (Expression<Func<T, object>> selector, OrderType orderType)[] selectors)
+        {
+            if (selectors.Length > 0)
+            {
+                var columnOrders = new List<string>();
+
+                foreach (var (selector, orderType) in selectors)
+                {
+                    var propertyName = ExpressionHelper.GetColumnNameFromEntity<T>(selector);
+                    var columnName = AttributeHelper.GetColumnName<T>(propertyName);
+
+                    var order = orderType == OrderType.Descending ? "DESC" : "ASC";
+                    columnOrders.Add($"{columnName} {order}");
+                }
+
+                _query.Append($" ORDER BY {string.Join(", ", columnOrders)}");
+            }
+
             return this;
         }
 

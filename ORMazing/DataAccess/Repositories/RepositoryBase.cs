@@ -1,4 +1,5 @@
 ﻿using ORMazing.Core.Attributes;
+using ORMazing.Core.Common;
 using ORMazing.Core.Mappers;
 using ORMazing.Core.Models.Condition;
 using ORMazing.Core.Models.Expressions;
@@ -54,56 +55,88 @@ namespace ORMazing.DataAccess.Repositories
             _queryExecutor.ExecuteNonQuery(sql, builder.GetParameters());
         }
 
-        public List<Dictionary<string, object>> GetWithCondition(
-                List<string>? selectedColumns = null,
-                string? whereCondition = null,
-                List<string>? groupByColumns = null,
-                string? havingCondition = null,
-                string? orderByColumns = null)
-        {
-            string columns = selectedColumns != null && selectedColumns.Count > 0
-                ? string.Join(", ", selectedColumns)
-                : "*";
+        //public List<Dictionary<string, object>> GetWithCondition(
+        //        List<string>? selectedColumns = null,
+        //        string? whereCondition = null,
+        //        List<string>? groupByColumns = null,
+        //        string? havingCondition = null,
+        //        string? orderByColumns = null)
+        //{
+        //    string columns = selectedColumns != null && selectedColumns.Count > 0
+        //        ? string.Join(", ", selectedColumns)
+        //        : "*";
 
-            var builder = new SqlQueryBuilder<T>().Select(columns);
+        //    var builder = new SqlQueryBuilder<T>().Select(columns);
 
-            if (!string.IsNullOrEmpty(whereCondition))
-            {
-                //builder.Where(whereCondition);
-            }
+        //    if (!string.IsNullOrEmpty(whereCondition))
+        //    {
+        //        //builder.Where(whereCondition);
+        //    }
 
-            if (groupByColumns != null && groupByColumns.Count > 0)
-            {
-                builder.GroupBy(string.Join(", ", groupByColumns));
-                if (!string.IsNullOrEmpty(havingCondition))
-                {
-                    builder.Having(havingCondition);
-                }
-            }
+        //    if (groupByColumns != null && groupByColumns.Count > 0)
+        //    {
+        //        builder.GroupBy(string.Join(", ", groupByColumns));
+        //        if (!string.IsNullOrEmpty(havingCondition))
+        //        {
+        //            builder.Having(havingCondition);
+        //        }
+        //    }
 
-            if (!string.IsNullOrEmpty(orderByColumns))
-            {
-                builder.OrderBy(orderByColumns);
-            }
+        //    if (!string.IsNullOrEmpty(orderByColumns))
+        //    {
+        //        builder.OrderBy(orderByColumns);
+        //    }
 
-            var sql = builder.Build();
-            Debug.WriteLine(sql);
-            return _queryExecutor.ExecuteQueryToDictionary(sql, builder.GetParameters());
-        }
+        //    var sql = builder.Build();
+        //    Debug.WriteLine(sql);
+        //    return _queryExecutor.ExecuteQueryToDictionary(sql, builder.GetParameters());
+        //}
 
 
-        public List<TResult> Get<TResult>(Expression<Func<T, TResult>> selector, Condition<T>? condition = null) where TResult : class
+        public List<TResult> Get<TResult>(
+            Expression<Func<T, TResult>> selector, 
+            Condition<T>? whereCondition = null,
+            string[]? groupByColumns = null,
+            Expression<Func<T, object>>[]? groupBySelectors = null,
+            Condition<T>? havingCondition = null,
+            (string Column, OrderType Order)[]? orderByColumns = null,
+            (Expression<Func<T, object>> selector, OrderType orderType)[]? orderBySelectors = null
+            ) where TResult : class
         {
             _queryBuilder.Reset();
             _queryBuilder.Select(selector);
             
 
-            if (condition != null)
+            if (whereCondition != null)
             {
-                _queryBuilder.Where(condition);
+                _queryBuilder.Where(whereCondition);
+            }
+
+            if (groupBySelectors != null && groupBySelectors.Any())
+            {
+                _queryBuilder.GroupBy(groupBySelectors);
+            }
+            else if (groupByColumns != null && groupByColumns.Any())
+            {
+                _queryBuilder.GroupBy(groupByColumns);
+            }
+
+            if (havingCondition != null)
+            {
+                _queryBuilder.Having(havingCondition);
+            }
+
+            if (orderBySelectors != null && orderBySelectors.Any())
+            {
+                _queryBuilder.OrderBy(orderBySelectors);
+            }
+            else if (orderByColumns != null && orderByColumns.Any())
+            {
+                _queryBuilder.OrderBy(orderByColumns);
             }
 
             var sql = _queryBuilder.Build();
+            Console.WriteLine(DateTime.Now + ": " + sql);
             var columnMappings = ExtractColumnMappings(selector);
 
             return _queryExecutor.ExecuteQueryWithExternalMapper<TResult>(
@@ -125,7 +158,13 @@ namespace ORMazing.DataAccess.Repositories
         public List<Dictionary<string, object>> Get (
             string[]? columns = null,
             Expression<Func<T, object>>[]? columnSelectors = null,
-            Condition<T>? condition = null) 
+            Condition<T>? whereCondition = null,
+            string[]? groupByColumns = null,
+            Expression<Func<T, object>>[]? groupBySelectors = null,
+            Condition<T>? havingCondition = null,
+            (string Column, OrderType Order)[]? orderByColumns = null,
+            (Expression<Func<T, object>> selector, OrderType orderType)[]? orderBySelectors = null
+            ) 
         {
             
             if (columnSelectors != null && columnSelectors.Any())
@@ -141,9 +180,32 @@ namespace ORMazing.DataAccess.Repositories
                 _queryBuilder.Select();
             }
 
-            if (condition != null)
+            if (whereCondition != null)
             {
-                _queryBuilder.Where(condition);
+                _queryBuilder.Where(whereCondition);
+            }
+
+            if (groupBySelectors != null && groupBySelectors.Any())
+            {
+                _queryBuilder.GroupBy(groupBySelectors);
+            }
+            else if (groupByColumns != null && groupByColumns.Any())
+            {
+                _queryBuilder.GroupBy(groupByColumns);
+            }
+
+            if (havingCondition != null)
+            {
+                _queryBuilder.Having(havingCondition);
+            }
+
+            if (orderBySelectors != null && orderBySelectors.Any())
+            {
+                _queryBuilder.OrderBy(orderBySelectors);
+            }
+            else if (orderByColumns != null && orderByColumns.Any())
+            {
+                _queryBuilder.OrderBy(orderByColumns);
             }
 
             var sql = _queryBuilder.Build();

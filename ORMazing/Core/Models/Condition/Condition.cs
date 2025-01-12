@@ -32,5 +32,4 @@ namespace ORMazing.Core.Models.Condition
         public static CompositeCondition<T> Or(params Condition<T>[] conditions) =>
             new CompositeCondition<T>("OR", conditions);
     }
-
 }

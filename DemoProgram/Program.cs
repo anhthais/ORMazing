@@ -1,6 +1,7 @@
 ﻿using DemoProgram.Models;
 using ORMazing;
 using ORMazing.Config;
+using ORMazing.Core.Common;
 using ORMazing.Core.Models.Condition;
 using ORMazing.DataAccess.Executors;
 using ORMazing.DataAccess.Factories;
@@ -138,24 +139,28 @@ namespace DemoProgram
                 selector: o => new {
                     CustomerId = o.Id,
                     CustomerName = o.Name,
-                    CustomerName2 = o.Name + " custom"
+                    CustomerName2 = o.Name + " custom",
+                    CustomerAge = o.Age,
                 },
-                condition: Condition<User>.And(
-                    Condition<User>.GreaterThan(o => o.Age, 30),
+                whereCondition: Condition<User>.And(
+                    Condition<User>.GreaterThan(o => o.Age, 20),
                     Condition<User>.LessThan(o => o.Age, 40)
-                )
+                ),
+                groupByColumns: [ "Name", "Id", "Age" ],
+                havingCondition: Condition<User>.GreaterThan(o => o.Age, 30),
+                orderBySelectors: [(o => o.Age, OrderType.Descending), (o => o.Id, OrderType.Ascending)]
             );
 
             for (int i = 0; i < res.Count; i++)
             {
-                Console.WriteLine($"Id: {res[i].CustomerId}, Name: {res[i].CustomerName}, Name2: {res[i].CustomerName2}");
+                Console.WriteLine($"Id: {res[i].CustomerId}, Name: {res[i].CustomerName}, Name2: {res[i].CustomerName2}, Age: {res[i].CustomerAge}");
             }
 
-            Console.WriteLine("\n");
+            Console.WriteLine("==========\n");
 
             var res2 = userRepository.Get(
                 columns: [ "Id", "Name" ],
-                condition: Condition<User>.And(
+                whereCondition: Condition<User>.And(
                     Condition<User>.GreaterThan(o => o.Age, 36),
                     Condition<User>.LessThan(o => o.Age, 39)
                 )
@@ -166,12 +171,12 @@ namespace DemoProgram
                 Console.WriteLine($"Id: {res2[i]["Id"]}, Name: {res2[i]["Name"]}");
             }
 
-            Console.WriteLine("\n");
+            Console.WriteLine("=========\n");
 
             var res3 = userRepository.Get(
                 columns: ["Id", "Name"],
                 columnSelectors: [ o => o.Id, o => o.Name ],
-                condition: Condition<User>.Or(
+                whereCondition: Condition<User>.Or(
                     Condition<User>.LessThanOrEqual(o => o.Age, 30),
                     Condition<User>.GreaterThanOrEqual(o => o.Age, 39)
                 )
