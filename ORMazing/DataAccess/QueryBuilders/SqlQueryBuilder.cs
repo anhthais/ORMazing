@@ -1,5 +1,6 @@
 ﻿using ORMazing.Core.Attributes;
 using ORMazing.Core.Models.Expressions;
+using ORMazing.Core.Models.Condition;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -35,6 +36,7 @@ namespace ORMazing.DataAccess.QueryBuilders
 
             return this;
         }
+        
         public IQueryBuilder<T> Select(params Expression<Func<T, object>>[] selectors)
         {
             _query.Clear();
@@ -49,7 +51,7 @@ namespace ORMazing.DataAccess.QueryBuilders
             {
                 foreach(var selector in selectors)
                 {
-                    var propertyName = GetColumnNameFromExpression(selector);
+                    var propertyName = ExpressionHelper.GetColumnNameFromEntity<T>(selector);
                     var columnName = AttributeHelper.GetColumnName<T>(propertyName);
                     columnNames.Add(columnName);
                 }
@@ -58,6 +60,7 @@ namespace ORMazing.DataAccess.QueryBuilders
             _query.Append($"SELECT {string.Join(", ", columnNames)} FROM {_tableName}");
             return this;
         }
+        
         public IQueryBuilder<T> Select<TResult>(Expression<Func<T, TResult>> selector)
         {
             this.Reset();
@@ -98,16 +101,34 @@ namespace ORMazing.DataAccess.QueryBuilders
 
             return this;
         }
-        public IQueryBuilder<T> Where(string condition)
+        
+        public IQueryBuilder<T> Where(Condition<T> condition)
         {
-            _query.Append($" WHERE {condition}");
+            if (condition == null)
+            {
+                throw new ArgumentNullException(nameof(condition));
+            }
+
+            var conditionSql = condition.ToSql();
+
+            if (_query.ToString().Contains("WHERE"))
+            {
+                _query.Append($" AND ({conditionSql})");
+            } 
+            else 
+            {
+                _query.Append($" WHERE {conditionSql}");
+            }
+
             return this;
         }
+
         public IQueryBuilder<T> GroupBy(string columns)
         {
             _query.Append($" GROUP BY {columns}");
             return this;
         }
+        
         public IQueryBuilder<T> Having(string condition)
         {
             _query.Append($" HAVING {condition}");
@@ -119,6 +140,7 @@ namespace ORMazing.DataAccess.QueryBuilders
             _query.Append($" ORDER BY {columns}");
             return this;
         }
+
         public IQueryBuilder<T> Insert(Dictionary<string, object> values)
         {
             this.Reset();
@@ -139,7 +161,7 @@ namespace ORMazing.DataAccess.QueryBuilders
             _query.Append(") VALUES (");
             _query.Append(string.Join(", ", parameterizedValues));
             _query.Append(")");
-            Debug.WriteLine(_query.ToString());
+
             return this;
         }
 
@@ -225,19 +247,6 @@ namespace ORMazing.DataAccess.QueryBuilders
         public Dictionary<string, object> GetParameters()
         {
             return new Dictionary<string, object>(_parameters);
-        }
-
-        private string GetColumnNameFromExpression(Expression<Func<T, object>> expression)
-        {
-            if (expression.Body is MemberExpression member)
-            {
-                return member.Member.Name;
-            }
-            if (expression.Body is UnaryExpression unary && unary.Operand is MemberExpression memberOperand)
-            {
-                return memberOperand.Member.Name;
-            }
-            throw new InvalidOperationException("Invalid column expression.");
         }
     }
 }

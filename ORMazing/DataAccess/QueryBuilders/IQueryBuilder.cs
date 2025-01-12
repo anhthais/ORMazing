@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using ORMazing.Core.Models.Condition;
 
 namespace ORMazing.DataAccess.QueryBuilders
 {
@@ -7,7 +8,7 @@ namespace ORMazing.DataAccess.QueryBuilders
         IQueryBuilder<T> Select(string[] columns);
         IQueryBuilder<T> Select(params Expression<Func<T, object>>[] selectors);
         IQueryBuilder<T> Select<TResult>(Expression<Func<T, TResult>> selector);
-        IQueryBuilder<T> Where(string condition);
+        IQueryBuilder<T> Where(Condition<T> condition);
         IQueryBuilder<T> Insert(Dictionary<string, object> values);
         IQueryBuilder<T> Update(Dictionary<string, object> values);
         IQueryBuilder<T> Delete(Dictionary<string, object> values);

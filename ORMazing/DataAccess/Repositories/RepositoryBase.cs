@@ -1,5 +1,6 @@
 ﻿using ORMazing.Core.Attributes;
 using ORMazing.Core.Mappers;
+using ORMazing.Core.Models.Condition;
 using ORMazing.Core.Models.Expressions;
 using ORMazing.DataAccess.Executors;
 using ORMazing.DataAccess.QueryBuilders;
@@ -68,7 +69,7 @@ namespace ORMazing.DataAccess.Repositories
 
             if (!string.IsNullOrEmpty(whereCondition))
             {
-                builder.Where(whereCondition);
+                //builder.Where(whereCondition);
             }
 
             if (groupByColumns != null && groupByColumns.Count > 0)
@@ -91,14 +92,15 @@ namespace ORMazing.DataAccess.Repositories
         }
 
 
-        public List<TResult> Get<TResult>(Expression<Func<T, TResult>> selector, string? whereCondition = null, Dictionary<string, object>? parameters = null) where TResult : class
+        public List<TResult> Get<TResult>(Expression<Func<T, TResult>> selector, Condition<T>? condition = null) where TResult : class
         {
             _queryBuilder.Reset();
             _queryBuilder.Select(selector);
+            
 
-            if (!string.IsNullOrEmpty(whereCondition))
+            if (condition != null)
             {
-                _queryBuilder.Where(whereCondition);
+                _queryBuilder.Where(condition);
             }
 
             var sql = _queryBuilder.Build();
@@ -118,6 +120,35 @@ namespace ORMazing.DataAccess.Repositories
 
                     return (TResult)constructor.Invoke(arguments);
                 });
+        }
+
+        public List<Dictionary<string, object>> Get (
+            string[]? columns = null,
+            Expression<Func<T, object>>[]? columnSelectors = null,
+            Condition<T>? condition = null) 
+        {
+            
+            if (columnSelectors != null && columnSelectors.Any())
+            {
+                _queryBuilder.Select(columnSelectors);
+            }
+            else if (columns != null && columns.Any())
+            {
+                _queryBuilder.Select(columns);
+            }
+            else
+            {
+                _queryBuilder.Select();
+            }
+
+            if (condition != null)
+            {
+                _queryBuilder.Where(condition);
+            }
+
+            var sql = _queryBuilder.Build();
+
+            return _queryExecutor.ExecuteQueryToDictionary(sql, _queryBuilder.GetParameters());
         }
 
         private List<(string SourceColumn, string TargetProperty)> ExtractColumnMappings<TResult>(Expression<Func<T, TResult>> selector)

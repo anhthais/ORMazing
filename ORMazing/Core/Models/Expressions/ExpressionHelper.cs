@@ -10,6 +10,19 @@ namespace ORMazing.Core.Models.Expressions
 {
     public static class ExpressionHelper
     {
+        public static string GetColumnNameFromEntity<T>(Expression<Func<T, object>> expression) where T: class
+        {
+            if (expression.Body is MemberExpression member)
+            {
+                return member.Member.Name;
+            }
+            if (expression.Body is UnaryExpression unary && unary.Operand is MemberExpression memberOperand)
+            {
+                return memberOperand.Member.Name;
+            }
+            throw new InvalidOperationException("Invalid column expression.");
+        }
+
         public static string HandleBinaryExpression<T>(BinaryExpression binaryExpression) where T: class
         {
             var leftType = GetExpressionType(binaryExpression.Left);

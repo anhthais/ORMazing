@@ -1,9 +1,11 @@
 ﻿using DemoProgram.Models;
 using ORMazing;
 using ORMazing.Config;
+using ORMazing.Core.Models.Condition;
 using ORMazing.DataAccess.Executors;
 using ORMazing.DataAccess.Factories;
 using ORMazing.DataAccess.QueryBuilders;
+using System.Linq.Expressions;
 
 namespace DemoProgram
 {
@@ -132,16 +134,52 @@ namespace DemoProgram
 
             //var queryBuilder = new SqlQueryBuilder<User>();
 
-            var res = userRepository.Get(o => new
-            {
-                CustomerId = o.Id * 5,
-                CustomerName = o.Name + " hello",
-                CustomerName2 = o.Name
-            });
+            var res = userRepository.Get(
+                selector: o => new {
+                    CustomerId = o.Id,
+                    CustomerName = o.Name,
+                    CustomerName2 = o.Name + " custom"
+                },
+                condition: Condition<User>.And(
+                    Condition<User>.GreaterThan(o => o.Age, 30),
+                    Condition<User>.LessThan(o => o.Age, 40)
+                )
+            );
 
             for (int i = 0; i < res.Count; i++)
             {
                 Console.WriteLine($"Id: {res[i].CustomerId}, Name: {res[i].CustomerName}, Name2: {res[i].CustomerName2}");
+            }
+
+            Console.WriteLine("\n");
+
+            var res2 = userRepository.Get(
+                columns: [ "Id", "Name" ],
+                condition: Condition<User>.And(
+                    Condition<User>.GreaterThan(o => o.Age, 36),
+                    Condition<User>.LessThan(o => o.Age, 39)
+                )
+            );
+
+            for (int i = 0; i < res2.Count; i++)
+            {
+                Console.WriteLine($"Id: {res2[i]["Id"]}, Name: {res2[i]["Name"]}");
+            }
+
+            Console.WriteLine("\n");
+
+            var res3 = userRepository.Get(
+                columns: ["Id", "Name"],
+                columnSelectors: [ o => o.Id, o => o.Name ],
+                condition: Condition<User>.Or(
+                    Condition<User>.LessThanOrEqual(o => o.Age, 30),
+                    Condition<User>.GreaterThanOrEqual(o => o.Age, 39)
+                )
+            );
+
+            for (int i = 0; i < res3.Count; i++)
+            {
+                Console.WriteLine($"Id: {res3[i]["Id"]}, Name: {res3[i]["Name"]}");
             }
         }
     }
