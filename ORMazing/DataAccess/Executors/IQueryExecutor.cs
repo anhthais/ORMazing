@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Data;
 
 namespace ORMazing.DataAccess.Executors
 {
@@ -11,5 +6,7 @@ namespace ORMazing.DataAccess.Executors
     {
         int ExecuteNonQuery(string sql, Dictionary<string, object>? parameters);
         List<T> ExecuteQuery<T>(string sql, Dictionary<string, object>? parameters) where T : class, new();
+        public List<TResult> ExecuteQueryWithExternalMapper<TResult>(string sql, Dictionary<string, object>? parameters, Func<IDataReader, TResult> map);
+        public List<Dictionary<string, object>> ExecuteQueryToDictionary(string sql, Dictionary<string, object>? parameters);
     }
 }

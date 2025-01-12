@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Core\Models\Condition\" />
+    <Folder Include="DataAccess\Context\" />
   </ItemGroup>
 
   <ItemGroup>
