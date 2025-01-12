@@ -10,9 +10,9 @@ namespace ORMazing.DataAccess.Executors
     {
         private readonly IDbConnection _connection;
 
-        public SqlQueryExecutor(IDatabaseConnectionFactory connectionFactory)
+        public SqlQueryExecutor(IDbConnection connection)
         {
-            _connection = connectionFactory.CreateConnection();
+            _connection = connection;
         }
 
         public int ExecuteNonQuery(string sql, Dictionary<string, object>? parameters)

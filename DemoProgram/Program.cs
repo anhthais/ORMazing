@@ -132,8 +132,6 @@ namespace DemoProgram
 
             //var queryBuilder = new SqlQueryBuilder<User>();
 
-
-
             var res = userRepository.Get(o => new
             {
                 CustomerId = o.Id * 5,
