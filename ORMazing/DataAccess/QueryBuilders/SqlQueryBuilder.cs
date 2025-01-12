@@ -9,8 +9,8 @@ namespace ORMazing.DataAccess.QueryBuilders
 {
     public class SqlQueryBuilder<T> : IQueryBuilder<T> where T : class, new()
     {
-        private readonly StringBuilder _query;
-        private readonly Dictionary<string, object> _parameters;
+        private StringBuilder _query;
+        private Dictionary<string, object> _parameters;
         private readonly string _tableName;
 
         public SqlQueryBuilder()
@@ -212,6 +212,12 @@ namespace ORMazing.DataAccess.QueryBuilders
             }
 
             return this;
+        }
+
+        public void Reset()
+        {
+            _query.Clear();
+            _parameters.Clear();
         }
 
         public string Build()
